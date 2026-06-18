@@ -190,7 +190,7 @@ The test suite defines six functions to be implemented, with the first test acti
 
 ### Test Data Examples
 
-Expected outputs from test suite demonstrating required data transformations:
+Expected outputs from test suite:
 
 ```javascript
 // firstNames expected output
@@ -253,21 +253,23 @@ The project uses npm scripts to manage the development lifecycle. Two processes 
 | Script | Command | Purpose |
 | --- | --- | --- |
 | test | jest --watch --verbose | Start Jest in watch mode with verbose output, auto-reruns on file changes |
-| api | json-server --port 4000 ./api/db.json | Start JSON server on port 4000 serving mock data |
-| api:stop | pkill -f 'json-server' || true | Stop all running JSON server processes |
+| api | json-server --port 4000 ./api/db.json | Start JSON server on port 4000 serving mock data from api/db.json |
+| api:stop | pkill -f 'json-server' || true | Stop the running JSON server process |
 
 ### Getting Started
 
-1. Start the mock API: npm run api
-2. In another terminal, start the tests: npm test
-3. Jest runs in watch mode and will automatically re-run tests when project files are saved
-4. Remove the 'x' prefix from xtest declarations in captains-service.test.js to enable additional tests progressively
+1. Install dependencies: npm install
+2. Start the mock API in one terminal: npm run api
+3. Start the tests in another terminal: npm test
+4. Jest will run in watch mode and automatically rerun tests when files are saved
+5. Implement captains-service.js functions to get tests passing
+6. Remove xtest prefix from tests to enable them as you progress through exercises
 
-## Code Quality Configuration
+## Development Configuration
 
 ### ESLint Configuration
 
-The project uses ESLint with the Airbnb configuration preset and Prettier integration for consistent code formatting.
+The project uses ESLint with Airbnb configuration extended with Prettier for code formatting. Jest plugin is included for test-specific rules.
 
 ```json
 {
@@ -290,9 +292,9 @@ The project uses ESLint with the Airbnb configuration preset and Prettier integr
 }
 ```
 
-### VSCode Settings
+### VSCode Configuration
 
-VSCode is configured to automatically format code on save and fix ESLint issues.
+VSCode is configured for automatic ESLint fixes and Prettier formatting on save. A Jest debugging configuration is provided for running all tests in watch mode.
 
 ```json
 {
@@ -304,65 +306,32 @@ VSCode is configured to automatically format code on save and fix ESLint issues.
 }
 ```
 
-### Jest Debug Configuration
+## Dependencies
 
-VSCode launch configuration enables debugging of Jest tests with integrated terminal output.
-
-```json
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Jest All",
-      "program": "${workspaceFolder}/node_modules/.bin/jest",
-      "args": [
-        "--runInBand",
-        "--watchAll=true"
-      ],
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "disableOptimisticBPs": true
-    }
-  ]
-}
-```
-
-## Data Lifecycle and Transformation Flow
-
-Data flows through the system from JSON storage through API endpoints to the service layer where transformations occur, culminating in test validation.
-
-### Transformation Pipeline
-
-1. Raw data stored in api/db.json as separate captains and ships arrays
-2. JSON server exposes data via HTTP GET endpoints on localhost:4000
-3. apiClient (axios wrapper) fetches data with promise-based interface
-4. captains-service getCaptains() retrieves captain array from API
-5. Transformation functions process captain data: name extraction, filtering, aggregation
-6. Merge operations combine captain and ship data using foreign key relationships
-7. Final transformed objects validated against test expectations
-
-## Dependencies and Build Tools
-
-### Runtime Dependencies
+### Production Dependencies
 
 | Package | Version | Purpose |
 | --- | --- | --- |
-| axios | ^1.9.0 | Promise-based HTTP client for API requests |
-| json-server | ^1.0.0-beta.15 | Mock REST API server serving db.json data |
+| axios | ^1.9.0 | HTTP client library for making API requests |
+| json-server | ^1.0.0-beta.15 | Mock REST API server for serving db.json data |
 
 ### Development Dependencies
 
 | Package | Version | Purpose |
 | --- | --- | --- |
-| @babel/preset-env | ^7.29.5 | Babel preset for modern JavaScript transpilation |
-| eslint | ^8.57.1 | JavaScript linter for code quality |
-| eslint-config-airbnb | ^19.0.4 | Airbnb's popular ESLint configuration |
-| eslint-config-prettier | ^9.1.2 | Prettier integration for ESLint |
-| jest | ^30.4.2 | Testing framework and test runner |
-| jest-watch-typeahead | ^3.0.1 | Enhanced Jest watch mode filtering |
-| prettier | ^3.8.3 | Code formatter for consistent style |
+| @babel/preset-env | ^7.29.5 | Babel configuration for modern JavaScript transpilation |
+| eslint | ^8.57.1 | JavaScript linting tool |
+| eslint-config-airbnb | ^19.0.4 | Airbnb ESLint configuration rules |
+| eslint-config-prettier | ^9.1.2 | Disables ESLint rules that conflict with Prettier |
+| eslint-plugin-import | ^2.32.0 | ESLint plugin for import/export syntax validation |
+| eslint-plugin-jest | ^29.15.2 | ESLint plugin for Jest-specific rules |
+| jest | ^30.4.2 | JavaScript testing framework and test runner |
+| jest-watch-typeahead | ^3.0.1 | Interactive Jest watch mode with file/test name filtering |
+| prettier | ^3.8.3 | Code formatter |
+
+## Data Lifecycle and Job Flow
+
+The data lifecycle begins with the JSON server holding static captain and ship data. When tests execute, they request data through the service layer, which uses the API client to fetch from the mock server, applies transformations, and returns results for test assertion.
 
 ---
 *Generated by Forge Wiki · 2026-06-18*
