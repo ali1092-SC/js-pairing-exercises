@@ -16,22 +16,14 @@ This repository provides a starting point for JavaScript pairing exercises focus
 
 ## System Architecture
 
-### Architecture Overview
-
 The system consists of three primary layers: a mock data API, an HTTP client layer, and service implementations that transform and combine data. The architecture is designed for educational purposes to teach API interaction, data transformation patterns, and asynchronous JavaScript.
 
-#### Component Stack
+### Component Stack
 
 - Mock API Layer: json-server serving captains and ships endpoints from api/db.json
 - HTTP Client: axios-based apiClient configured to localhost:4000
 - Service Layer: captains-service.js implementing data transformation logic
 - Test Layer: Jest test suite validating all functionality
-
-## Data Lifecycle Flow
-
-### Request-Response Lifecycle
-
-Data flows through the system from mock JSON database through the API to service functions, where it is transformed according to business logic requirements, then validated by tests.
 
 ## Project Structure
 
@@ -44,7 +36,7 @@ Data flows through the system from mock JSON database through the API to service
 | api/ | Mock API data storage | db.json |
 | .vscode/ | VSCode development configuration | launch.json, settings.json |
 
-#### Complete File Listing
+### Complete File Listing
 
 - .eslintrc.json - ESLint configuration with Airbnb preset
 - .vscode/launch.json - Jest debugging configuration
@@ -61,11 +53,9 @@ Data flows through the system from mock JSON database through the API to service
 
 ## Mock API Data Structure
 
-### API Data Schema
-
 The mock API serves two primary collections: captains and ships. These are related through captain.ship referencing ship.id.
 
-#### Captains Endpoint
+### Captains Endpoint
 
 Returns array of 4 captain objects, each containing id, first name, last name, age, and ship ID reference.
 
@@ -77,7 +67,7 @@ Returns array of 4 captain objects, each containing id, first name, last name, a
 | age | number | 48 | Captain's age in years |
 | ship | string | BC13V | Foreign key to ships.id |
 
-#### Ships Endpoint
+### Ships Endpoint
 
 Returns array of 4 ship objects, each containing id, name, crew count, and propulsion type.
 
@@ -88,6 +78,8 @@ Returns array of 4 ship objects, each containing id, name, crew count, and propu
 | crewCount | number | 1012 | Number of crew members |
 | propulsion | string | Warp Drive | Propulsion system type |
 
+### Sample Data
+
 ```json
 {
   "captains": [
@@ -97,6 +89,27 @@ Returns array of 4 ship objects, each containing id, name, crew count, and propu
       "last": "Sparrow",
       "age": 48,
       "ship": "BC13V"
+    },
+    {
+      "id": "R6TZN",
+      "first": "Malcolm",
+      "last": "Reynolds",
+      "age": 34,
+      "ship": "V7B8T"
+    },
+    {
+      "id": "UXWPK",
+      "first": "Jean Luc",
+      "last": "Picard",
+      "age": 64,
+      "ship": "DRPHT"
+    },
+    {
+      "id": "KZUC8",
+      "first": "Han",
+      "last": "Solo",
+      "age": 33,
+      "ship": "1M6GB"
     }
   ],
   "ships": [
@@ -105,6 +118,24 @@ Returns array of 4 ship objects, each containing id, name, crew count, and propu
       "name": "USS Enterprise NCC-1701-D",
       "crewCount": 1012,
       "propulsion": "Warp Drive"
+    },
+    {
+      "id": "BC13V",
+      "name": "Black Pearl",
+      "crewCount": 44,
+      "propulsion": "Wind"
+    },
+    {
+      "id": "1M6GB",
+      "name": "Millenium Falcon",
+      "crewCount": 2,
+      "propulsion": "Hyperdrive"
+    },
+    {
+      "id": "V7B8T",
+      "name": "Serenity",
+      "crewCount": 5,
+      "propulsion": "Radion/Accelerator Core"
     }
   ]
 }
@@ -112,9 +143,9 @@ Returns array of 4 ship objects, each containing id, name, crew count, and propu
 
 ## API Client Layer
 
-### API Client Implementation
-
 The apiClient module wraps axios and configures it to communicate with the mock JSON server running on localhost:4000. It provides a thin abstraction layer for HTTP requests.
+
+### Implementation
 
 ```javascript
 import axios from 'axios';
@@ -124,7 +155,7 @@ axios.defaults.baseURL = 'http://localhost:4000';
 export default axios;
 ```
 
-#### API Client Tests
+### API Client Tests
 
 Three verification tests ensure the API client is properly configured and can communicate with both endpoints:
 
@@ -134,11 +165,9 @@ Three verification tests ensure the API client is properly configured and can co
 
 ## Captains Service Layer
 
-### Service Layer Design
-
 The captains-service module implements business logic for fetching, transforming, and combining captain and ship data. Currently, only the getCaptains() function is implemented; other functions remain as stubs for completion during the pairing exercise.
 
-#### Current Implementation
+### Current Implementation
 
 ```javascript
 import apiClient from './apiClient';
@@ -146,7 +175,7 @@ import apiClient from './apiClient';
 export const getCaptains = () => null;
 ```
 
-#### Required Service Functions
+### Required Service Functions
 
 The test suite defines six functions to be implemented, with the first test active and the rest marked as skipped (xtest) to be progressively enabled:
 
@@ -159,7 +188,7 @@ The test suite defines six functions to be implemented, with the first test acti
 | captainBio | captainId: string | Promise<CaptainBio> | Merge captain and ship data for single captain | Skipped (xtest) |
 | captainsWithShipNamesBySize | none | Promise<CaptainWithShip[]> | All captains with ship names sorted by crew count ascending | Skipped (xtest) |
 
-#### Test Data Examples
+### Test Data Examples
 
 Expected outputs from test suite:
 
@@ -182,23 +211,44 @@ Expected outputs from test suite:
   shipName: 'Serenity'
 }
 
-// captainsWithShipNamesBySize expected output (first entry)
-{
-  id: 'KZUC8',
-  first: 'Han',
-  last: 'Solo',
-  age: 33,
-  ship: 'Millenium Falcon'
-}
+// captainsWithShipNamesBySize expected output (sorted by crew count ascending)
+[
+  {
+    id: 'KZUC8',
+    first: 'Han',
+    last: 'Solo',
+    age: 33,
+    ship: 'Millenium Falcon'  // crewCount: 2
+  },
+  {
+    id: 'R6TZN',
+    first: 'Malcolm',
+    last: 'Reynolds',
+    age: 34,
+    ship: 'Serenity'  // crewCount: 5
+  },
+  {
+    id: 'SQ2WI',
+    first: 'Jack',
+    last: 'Sparrow',
+    age: 48,
+    ship: 'Black Pearl'  // crewCount: 44
+  },
+  {
+    id: 'UXWPK',
+    first: 'Jean Luc',
+    last: 'Picard',
+    age: 64,
+    ship: 'USS Enterprise NCC-1701-D'  // crewCount: 1012
+  }
+]
 ```
 
 ## Development Workflow
 
-### Getting Started
-
 The project uses npm scripts to manage the development lifecycle. Two processes must run simultaneously: the mock API server and the Jest test runner.
 
-#### NPM Scripts
+### NPM Scripts
 
 | Script | Command | Purpose |
 | --- | --- | --- |
@@ -206,7 +256,7 @@ The project uses npm scripts to manage the development lifecycle. Two processes 
 | api:stop | npm run api:stop | Terminate all json-server processes |
 | test | npm test | Start Jest in watch mode with verbose output |
 
-#### Execution Steps
+### Execution Steps
 
 1. Start the mock API server: npm run api
 2. In a separate terminal, start the test suite: npm test
@@ -214,7 +264,7 @@ The project uses npm scripts to manage the development lifecycle. Two processes 
 4. Implement functions in src/captains-service.js to make tests pass
 5. Progressively enable skipped tests by removing 'x' from xtest to test
 
-#### VSCode Integration
+### VSCode Integration
 
 The project includes VSCode configuration for enhanced development experience:
 
@@ -225,9 +275,9 @@ The project includes VSCode configuration for enhanced development experience:
 
 ### Linting and Formatting
 
-The project enforces consistent code style using ESLint with the Airbnb preset combined with Prettier for automatic formatting.
+The project enforces consistent code style using ESLint with Airbnb configuration and Prettier for automatic formatting.
 
-#### ESLint Configuration
+### ESLint Configuration
 
 ```json
 {
@@ -250,45 +300,58 @@ The project enforces consistent code style using ESLint with the Airbnb preset c
 }
 ```
 
-#### Key Configuration Decisions
+### Configuration Details
 
-- Console logging allowed for debugging purposes (no-console: off)
-- Unused variables permitted during development (no-unused-vars: off)
-- Default exports not required, named exports preferred (import/prefer-default-export: off)
-- Skipped tests allowed during incremental development (jest/no-disabled-tests: off)
-- Jest globals automatically available in test files
-
-#### Testing Framework
-
-| Framework | Version | Role |
-| --- | --- | --- |
-| Jest | ^30.4.2 | Test runner and assertion library |
-| jest-watch-typeahead | ^3.0.1 | Interactive watch mode filtering by filename/testname |
+- Extends Airbnb style guide with Prettier compatibility
+- Jest plugin enables jest-specific linting rules
+- Console logging permitted for debugging
+- Unused variables allowed during development
+- ESLint auto-fix on save via VSCode settings
+- Prettier formats code on save automatically
 
 ## Dependencies
 
-### Dependency Overview
-
-The project maintains a lean dependency set with clear separation between production and development dependencies.
-
-#### Production Dependencies
+### Production Dependencies
 
 | Package | Version | Purpose |
 | --- | --- | --- |
-| axios | ^1.9.0 | HTTP client for API requests |
+| axios | ^1.9.0 | Promise-based HTTP client for API requests |
 | json-server | ^1.0.0-beta.15 | Mock REST API server for development |
 
-#### Development Dependencies
+### Development Dependencies
 
 | Package | Version | Purpose |
 | --- | --- | --- |
-| @babel/preset-env | ^7.29.5 | Babel transpiler preset for modern JavaScript |
-| eslint | ^8.57.1 | JavaScript linter |
-| eslint-config-airbnb | ^19.0.4 | Airbnb JavaScript style guide rules |
-| eslint-config-prettier | ^9.1.2 | Disable ESLint rules conflicting with Prettier |
-| jest | ^30.4.2 | Test framework and test runner |
-| jest-watch-typeahead | ^3.0.1 | Interactive filtering in watch mode |
+| @babel/preset-env | ^7.29.5 | Babel preset for modern JavaScript transpilation |
+| eslint | ^8.57.1 | JavaScript linting tool |
+| eslint-config-airbnb | ^19.0.4 | Airbnb JavaScript style guide for ESLint |
+| eslint-config-prettier | ^9.1.2 | Disables ESLint rules conflicting with Prettier |
+| jest | ^30.4.2 | JavaScript testing framework |
+| jest-watch-typeahead | ^3.0.1 | Jest watch plugin for filtering tests by filename or test name |
 | prettier | ^3.8.3 | Code formatter |
+
+## Jest Configuration
+
+Jest is configured for Node environment with enhanced watch plugins and default reporter.
+
+```json
+"jest": {
+  "testEnvironment": "node",
+  "reporters": [
+    "default"
+  ],
+  "watchPlugins": [
+    "jest-watch-typeahead/filename",
+    "jest-watch-typeahead/testname"
+  ]
+}
+```
+
+### Configuration Details
+
+- Test Environment: Node.js (not jsdom) for server-side testing
+- Default Reporter: Standard Jest output format
+- Watch Plugins: Typeahead filtering for both filenames and test names during watch mode
 
 ---
 *Generated by Forge Wiki · 2026-06-18*
