@@ -6,8 +6,6 @@
 
 This repository provides a starting point for JavaScript pairing exercises focused on reading from a mock API and then sorting, transforming, and merging data to meet test expectations. The project includes a complete test suite with Jest, a working mock API client wrapping axios, and a JSON server serving mock captain and ship data.
 
-### Purpose
-
 The exercises are designed to teach asynchronous JavaScript patterns, HTTP client usage, data transformation logic, and test-driven development through practical API integration challenges. Learners work with a mock API client to fetch data, then implement service functions that sort, filter, merge, and transform the data to pass progressive Jest tests.
 
 ### Key Features
@@ -21,8 +19,8 @@ The exercises are designed to teach asynchronous JavaScript patterns, HTTP clien
 
 ## Getting Started
 
-1. Start the mock API: npm run api
-2. Start the tests: npm test (Jest runs in watch mode and reruns automatically on file changes)
+1. Start the mock API with npm run api
+2. Start the tests with npm test (Jest runs in watch mode and reruns automatically on file changes)
 3. Complete the service implementations in captains-service.js to make tests pass
 4. Remove the 'x' prefix from xtest definitions to progressively enable skipped tests
 
@@ -67,34 +65,47 @@ The system consists of three primary layers: a mock data API, an HTTP client lay
 - src/captains-service.js - Service implementation stub for data transformation
 - src/captains-service.test.js - Service functionality tests with progressive skipping
 
-### NPM Scripts
+## NPM Scripts & Configuration
 
-| Script | Command | Description |
+| Script | Command | Purpose |
 | --- | --- | --- |
-| test | jest --watch --verbose | Run Jest test suite in watch mode with verbose output |
+| test | jest --watch --verbose | Run Jest in watch mode with verbose output, reruns on file changes |
 | api | json-server --port 4000 ./api/db.json | Start mock JSON server on port 4000 serving api/db.json |
-| api:stop | pkill -f 'json-server' || true | Stop running json-server process |
+| api:stop | pkill -f 'json-server' || true | Stop the running JSON server process |
 
-### Dependencies
+### Jest Configuration
+
+```json
+"jest": {
+  "testEnvironment": "node",
+  "reporters": ["default"],
+  "watchPlugins": [
+    "jest-watch-typeahead/filename",
+    "jest-watch-typeahead/testname"
+  ]
+}
+```
+
+## Dependencies
 
 ### Production Dependencies
 
 | Package | Version | Purpose |
 | --- | --- | --- |
-| axios | ^1.9.0 | HTTP client for API requests with promise support |
-| json-server | ^1.0.0-beta.15 | Mock REST API server for development and testing |
+| axios | ^1.9.0 | HTTP client library for making API requests |
+| json-server | ^1.0.0-beta.15 | Mock JSON API server for development and testing |
 
 ### Development Dependencies
 
-| Package | Version | Purpose |
-| --- | --- | --- |
-| @babel/preset-env | ^7.29.5 | Babel preset for modern JavaScript transpilation |
-| eslint | ^8.57.1 | JavaScript linter for code quality |
-| eslint-config-airbnb | ^19.0.4 | Airbnb ESLint configuration ruleset |
-| eslint-config-prettier | ^9.1.2 | Prettier integration with ESLint |
-| jest | ^30.4.2 | JavaScript test framework and runner |
-| jest-watch-typeahead | ^3.0.1 | Jest watch mode plugin for filtering tests by filename or testname |
-| prettier | ^3.8.3 | Code formatter |
+- @babel/preset-env ^7.29.5 - Babel preset for ES2015+ transpilation
+- eslint ^8.57.1 - JavaScript linter
+- eslint-config-airbnb ^19.0.4 - Airbnb ESLint configuration
+- eslint-config-prettier ^9.1.2 - Disable ESLint rules conflicting with Prettier
+- eslint-plugin-import ^2.32.0 - ESLint plugin for import statements
+- eslint-plugin-jest ^29.15.2 - ESLint plugin for Jest
+- jest ^30.4.2 - Testing framework
+- jest-watch-typeahead ^3.0.1 - Watch mode plugin for interactive filtering
+- prettier ^3.8.3 - Code formatter
 
 ## Mock API Data Structure
 
@@ -226,44 +237,93 @@ The test suite defines six functions to be implemented. The first test is active
 
 | Function Name | Input | Output | Expected Behavior | Test Status |
 | --- | --- | --- | --- | --- |
-| getCaptains | none | Promise<Captain[]> | Fetch all captains from API endpoint /captains | Active |
-| firstNames | none | Promise<string[]> | Extract and return captain first names in original order | Skipped |
-| firstNamesSorted | none | Promise<string[]> | Extract first names and sort alphabetically | Skipped |
-| totalAge | none | Promise<number> | Calculate combined total age of all captains (179) | Skipped |
-| captainBio | captainId: string | Promise<CaptainBio> | Merge captain and ship data by captain id, transforming field names | Skipped |
-| captainsWithShipNamesBySize | none | Promise<Captain[]> | Return captains sorted by ship crew size ascending, replacing ship id with ship name | Skipped |
+| getCaptains | none | Promise<Captain[]> | Fetch all captains from API endpoint /captains, returning 4 captain objects in original order | Active |
+| firstNames | none | Promise<string[]> | Extract captain first names and return array in original order | Skipped (xtest) |
+| firstNamesSorted | none | Promise<string[]> | Extract captain first names and return array sorted alphabetically | Skipped (xtest) |
+| totalAge | none | Promise<number> | Calculate and return sum of all captain ages | Skipped (xtest) |
+| captainBio | captainId: string | Promise<CaptainBio> | Merge captain and ship data, transform field names (first->firstName, last->lastName, ship->shipId and shipName) | Skipped (xtest) |
+| captainsWithShipNamesBySize | none | Promise<CaptainShip[]> | Fetch all captains, merge with ship names, sort by ship crew count ascending, replace ship IDs with ship names | Skipped (xtest) |
 
-### Test Expectations
+### Test Examples
 
-#### getCaptains()
+#### getCaptains Test
 
-Returns all 4 captains from the API with unmodified structure. Test verifies array length is 4 and first captain matches Jack Sparrow (id: SQ2WI).
+```javascript
+test('returns data from captains endpoint', async () => {
+  const captains = await captainsService.getCaptains();
+  const firstCaptain = {
+    id: 'SQ2WI',
+    first: 'Jack',
+    last: 'Sparrow',
+    age: 48,
+    ship: 'BC13V'
+  };
 
-#### firstNames()
+  expect(captains).toHaveLength(4);
+  expect(captains[0]).toEqual(firstCaptain);
+});
+```
 
-Extracts first names in order: ['Jack', 'Malcolm', 'Jean Luc', 'Han']
+#### captainBio Test (Skipped)
 
-#### firstNamesSorted()
+```javascript
+xtest('captain and ship combined for given captain id', async () => {
+  const expectedData = {
+    id: 'R6TZN',
+    firstName: 'Malcolm',
+    lastName: 'Reynolds',
+    shipId: 'V7B8T',
+    shipName: 'Serenity'
+  };
+  const captainShipData = await captainsService.captainBio('R6TZN');
 
-Sorts first names alphabetically: ['Han', 'Jack', 'Jean Luc', 'Malcolm']
+  expect(captainShipData).toEqual(expectedData);
+});
+```
 
-#### totalAge()
+#### captainsWithShipNamesBySize Test (Skipped)
 
-Sums all captain ages: 48 + 34 + 64 + 33 = 179
+```javascript
+xtest('Captains sorted by ship size', async () => {
+  const expectedData = [
+    {
+      id: 'KZUC8',
+      first: 'Han',
+      last: 'Solo',
+      age: 33,
+      ship: 'Millenium Falcon'
+    },
+    {
+      id: 'R6TZN',
+      first: 'Malcolm',
+      last: 'Reynolds',
+      age: 34,
+      ship: 'Serenity'
+    },
+    {
+      id: 'SQ2WI',
+      first: 'Jack',
+      last: 'Sparrow',
+      age: 48,
+      ship: 'Black Pearl'
+    },
+    {
+      id: 'UXWPK',
+      first: 'Jean Luc',
+      last: 'Picard',
+      age: 64,
+      ship: 'USS Enterprise NCC-1701-D'
+    }
+  ];
+  const captainsWithShipNamesBySize = await captainsService.captainsWithShipNamesBySize();
 
-#### captainBio(captainId)
+  expect(captainsWithShipNamesBySize).toEqual(expectedData);
+});
+```
 
-Merges captain and ship data by matching captain.ship to ship.id and returns transformed object with firstName, lastName, shipId, and shipName fields. Example for Malcolm Reynolds: {id: 'R6TZN', firstName: 'Malcolm', lastName: 'Reynolds', shipId: 'V7B8T', shipName: 'Serenity'}
-
-#### captainsWithShipNamesBySize()
-
-Returns all captains sorted by associated ship crew count ascending, with ship id replaced by ship name. Serenity (5 crew) first, USS Enterprise (1012 crew) last.
-
-## Development Configuration
+## Code Quality Configuration
 
 ### ESLint Configuration
-
-ESLint is configured with Airbnb ruleset extended with Prettier for code formatting. Jest plugin is enabled with relaxed rules for disabled and focused tests. Console logging is allowed for debugging purposes.
 
 ```json
 {
@@ -286,13 +346,7 @@ ESLint is configured with Airbnb ruleset extended with Prettier for code formatt
 }
 ```
 
-### VSCode Debug Configuration
-
-Jest launch configuration provides integrated terminal debugging with runInBand and watchAll flags to run tests sequentially and in watch mode. Windows compatibility is handled with explicit jest.bin path.
-
-### VSCode Editor Settings
-
-Auto-formatting is enabled on save with both ESLint and Prettier integration. Editor applies ESLint fixes automatically via code actions when files are saved.
+### VSCode Settings
 
 ```json
 {
@@ -304,103 +358,66 @@ Auto-formatting is enabled on save with both ESLint and Prettier integration. Ed
 }
 ```
 
-## Jest Test Framework
+The configuration enables automatic ESLint fixing and code formatting on save in VSCode. ESLint uses the Airbnb style guide with Prettier integration for consistent formatting. Jest-specific rules allow disabled and focused tests during development.
 
-Jest is configured as the test runner with Node testEnvironment. Watch plugins enable filtering tests by filename or testname during development. Test files are automatically discovered with .test.js suffix.
+## Debugging Configuration
 
-### Jest Configuration
+VSCode debugging configuration is pre-configured for Jest testing. The launch configuration runs Jest in band (sequential execution) with watch mode enabled for interactive debugging.
 
 ```json
-"jest": {
-  "testEnvironment": "node",
-  "reporters": [
-    "default"
-  ],
-  "watchPlugins": [
-    "jest-watch-typeahead/filename",
-    "jest-watch-typeahead/testname"
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Jest All",
+      "program": "${workspaceFolder}/node_modules/.bin/jest",
+      "args": [
+        "--runInBand",
+        "--watchAll=true"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "disableOptimisticBPs": true,
+      "windows": {
+        "program": "${workspaceFolder}/node_modules/jest/bin/jest"
+      }
+    }
   ]
 }
 ```
 
-The test suite is run in watch mode via `npm test`, which automatically reruns affected tests when source files are modified. Jest watch plugins allow filtering by test filename or test name during interactive watch sessions.
+### Usage
 
-## Test Structure
+1. Press F5 or go to Run > Start Debugging in VSCode
+2. Jest will launch in the integrated terminal with watch mode enabled
+3. Set breakpoints by clicking on line numbers in the editor
+4. Tests will pause execution at breakpoints for inspection
 
-### API Client Tests
+## Exercise Workflow
 
-Three tests verify that the API client is properly configured and can successfully communicate with the mock JSON server endpoints. These tests must pass before service layer tests can run.
+The exercise uses test-driven development (TDD) with progressive test enabling. Each function is tested incrementally by removing the 'x' prefix from xtest definitions, revealing new requirements as previous tests pass.
 
-1. apiClient configuration test - checks baseURL is set to http://localhost:4000
-2. Captains endpoint test - verifies GET /captains returns 200 status and 4 records
-3. Ships endpoint test - verifies GET /ships returns 200 status and 4 records
+### Progression Steps
 
-All apiClient tests use async/await with explicit assertion counts. Error handling includes helpful messaging to ensure the json-server is started before running tests.
+1. Implement getCaptains() to fetch captain data from /captains endpoint
+2. Remove 'x' from 'xtest' in firstNames test, implement firstNames() to extract first names in order
+3. Enable firstNamesSorted test and implement sorting of first names alphabetically
+4. Enable totalAge test and implement sum calculation of all captain ages
+5. Enable captainBio test and implement captain-ship data merge with field name transformation
+6. Enable captainsWithShipNamesBySize test and implement ship name lookup plus crew count sorting
 
-### Captains Service Tests
+### Data Transformation Patterns
 
-Six test cases are defined in captains-service.test.js. The first test (getCaptains) is active and enabled. The remaining five tests are prefixed with 'x' (xtest) to skip them initially, allowing incremental completion as each function is implemented.
+Throughout the exercises, learners practice essential data transformation patterns including:
 
-| Test Name | Line Range | Status | Description |
-| --- | --- | --- | --- |
-| returns data from captains endpoint | 3-14 | Active | Verifies getCaptains() returns 4 captain objects |
-| captain first names | 16-21 | Skipped | Tests firstNames() extraction |
-| captain first names sorted alphabetically | 23-28 | Skipped | Tests firstNamesSorted() alphabetic ordering |
-| captain combined total age | 30-35 | Skipped | Tests totalAge() summation |
-| captain and ship combined for given captain id | 37-48 | Skipped | Tests captainBio() data merge |
-| Captains sorted by ship size | 50-80 | Skipped | Tests captainsWithShipNamesBySize() sorting and transformation |
-
-## Data Transformation Patterns
-
-The pairing exercises teach several core data transformation patterns. These patterns are essential for real-world API integration and data processing tasks.
-
-### Extraction Pattern
-
-Extract specific fields from objects in an array using Array.map(). Example: extract first names from captain objects.
-
-### Sorting Pattern
-
-Sort arrays by field value using Array.sort() with custom comparators. Can sort strings alphabetically or numbers numerically.
-
-### Aggregation Pattern
-
-Reduce arrays to single values using Array.reduce(). Example: calculate total age by summing individual captain ages.
-
-### Join/Merge Pattern
-
-Combine data from multiple API endpoints using Array.find() to match records by foreign key. Example: combine captain data with ship data by matching captain.ship to ship.id.
-
-### Field Transformation Pattern
-
-Rename and restructure object properties while merging. Example: transform first/last to firstName/lastName and ship id to shipName when merging captain and ship data.
-
-## Development Workflow
-
-The development workflow is designed for test-driven development with immediate feedback and incremental progress.
-
-### Step 1: Start the Mock API
-
-```bash
-npm run api
-```
-
-This starts json-server on localhost:4000 serving the captains and ships collections from api/db.json.
-
-### Step 2: Start the Test Suite
-
-```bash
-npm test
-```
-
-Jest starts in watch mode with verbose output. Initially, the apiClient tests should pass (verifying API connection), while captains-service tests will fail or be skipped.
-
-### Step 3: Implement Functions
-
-Edit src/captains-service.js to implement each required function. As each function is completed and tests pass, unskip the next test by removing the 'x' from xtest.
-
-### Step 4: Verify Incrementally
-
-Jest watch mode automatically reruns affected tests as files are saved. The jest-watch-typeahead plugins allow filtering tests by name during development for focused debugging.
+- Fetching data asynchronously from multiple endpoints
+- Array mapping to extract and transform fields
+- Array sorting with custom comparator functions
+- Array reduction for aggregation (e.g., summing ages)
+- Object merging to combine related data from multiple sources
+- Field name transformation and aliasing during data merge
 
 ---
 *Generated by Forge Wiki · 2026-06-18*
