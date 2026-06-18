@@ -17,7 +17,14 @@ The exercises are designed to teach asynchronous JavaScript patterns, HTTP clien
 - Jest test framework with watch mode for test-driven development
 - ESLint with Airbnb configuration for code quality enforcement
 - Pre-configured VSCode launch configuration for debugging Jest tests
-- Progressive exercise structure with skipped tests to enable incrementally
+- Progressive exercise structure with skipped tests to enable incremental completion
+
+## Getting Started
+
+1. Start the mock api with npm run api
+2. Start the tests with npm test (Jest runs in watch mode and reruns automatically on file changes)
+3. Complete the service implementations in captains-service.js to make tests pass
+4. Remove the 'x' prefix from xtest definitions to progressively enable skipped tests
 
 ## System Architecture
 
@@ -25,7 +32,7 @@ The system consists of three primary layers: a mock data API, an HTTP client lay
 
 ### Component Stack
 
-- Mock API Layer: json-server serving captains and ships endpoints from api/db.json
+- Mock API Layer: json-server serving captains and ships endpoints from api/db.json on port 4000
 - HTTP Client: axios-based apiClient configured to localhost:4000
 - Service Layer: captains-service.js implementing data transformation logic
 - Test Layer: Jest test suite validating all functionality
@@ -43,18 +50,18 @@ The system consists of three primary layers: a mock data API, an HTTP client lay
 | api/ | Mock API data storage | db.json |
 | .vscode/ | VSCode development configuration | launch.json, settings.json |
 
-### Complete File Listing
+### File Manifest
 
 - .eslintrc.json - ESLint configuration with Airbnb preset and Jest plugin support
-- .vscode/launch.json - Jest debugging configuration for VSCode
-- .vscode/settings.json - Auto-formatting and linting settings for VSCode
+- .vscode/launch.json - Jest debugging configuration for VSCode with runInBand and watchAll flags
+- .vscode/settings.json - Auto-formatting and linting settings for VSCode with eslint.autoFixOnSave enabled
 - README.md - Project documentation and getting started guide
 - WIKI.md - Generated wiki documentation
-- package.json - Dependencies and NPM scripts
+- package.json - Dependencies and NPM scripts (test, api, api:stop)
 - package-lock.json - Locked dependency versions for reproducible installs
-- api/db.json - Mock data for captains and ships collections
+- api/db.json - Mock data for captains and ships collections with 4 records each
 - src/apiClient.js - Axios HTTP client wrapper with baseURL configuration
-- src/apiClient.test.js - API client verification tests
+- src/apiClient.test.js - API client verification tests (3 tests, all active)
 - src/captains-service.js - Service implementation stub for data transformation
 - src/captains-service.test.js - Service functionality tests with progressive skipping
 
@@ -72,7 +79,7 @@ Returns array of 4 captain objects, each containing id, first name, last name, a
 | first | string | Jack | Captain's first name |
 | last | string | Sparrow | Captain's last name |
 | age | number | 48 | Captain's age in years |
-| ship | string | BC13V | Foreign key to ships.id |
+| ship | string | BC13V | Foreign key reference to ships.id |
 
 ### Ships Collection
 
@@ -164,13 +171,11 @@ export default axios;
 
 ### API Client Tests
 
-Three verification tests ensure the API client is properly configured and can communicate with both endpoints:
+Three verification tests ensure the API client is properly configured and can communicate with both endpoints. All tests in apiClient.test.js are active (not skipped) to verify the mock API is running correctly before service layer tests execute.
 
 - Configuration test: Verifies baseURL is set to http://localhost:4000
 - Captains endpoint test: Confirms /captains returns 200 status with 4 captain records
 - Ships endpoint test: Confirms /ships returns 200 status with 4 ship records
-
-All tests in apiClient.test.js are active (not skipped) to verify the mock API is running correctly before service layer tests execute.
 
 ## Captains Service Layer
 
@@ -190,19 +195,21 @@ The test suite defines six functions to be implemented. The first test is active
 
 | Function Name | Input | Output | Expected Behavior | Test Status |
 | --- | --- | --- | --- | --- |
-| getCaptains | none | Promise<Captain[]> | Fetch all captains from API | Active |
+| getCaptains | none | Promise<Captain[]> | Fetch all captains from API endpoint /captains | Active |
 | firstNames | none | Promise<string[]> | Extract and return captain first names in original order | Skipped (xtest) |
 | firstNamesSorted | none | Promise<string[]> | Extract first names and sort alphabetically | Skipped (xtest) |
-| totalAge | none | Promise<number> | Calculate sum of all captain ages (179) | Skipped (xtest) |
-| captainBio | captainId: string | Promise<CaptainBio> | Merge captain and ship data for single captain | Skipped (xtest) |
+| totalAge | none | Promise<number> | Calculate sum of all captain ages (expected: 179) | Skipped (xtest) |
+| captainBio | captainId: string | Promise<CaptainBio> | Merge captain and ship data for single captain by ID | Skipped (xtest) |
 | captainsWithShipNamesBySize | none | Promise<CaptainWithShip[]> | All captains with ship names sorted by crew count ascending | Skipped (xtest) |
 
-### Test Data and Expected Outputs
+### Test Expectations
 
 #### getCaptains() - Active Test
 
+Returns all 4 captain objects directly from the API endpoint.
+
 ```javascript
-// Expected output
+// Expected output from getCaptains()
 [
   {
     id: 'SQ2WI',
@@ -237,29 +244,38 @@ The test suite defines six functions to be implemented. The first test is active
 
 #### firstNames() - Skipped Test
 
+Extracts first names from captains in original order.
+
 ```javascript
-// Expected output
+// Expected output from firstNames()
 ['Jack', 'Malcolm', 'Jean Luc', 'Han']
 ```
 
 #### firstNamesSorted() - Skipped Test
 
+Extracts first names and returns them in alphabetical order.
+
 ```javascript
-// Expected output
+// Expected output from firstNamesSorted()
 ['Han', 'Jack', 'Jean Luc', 'Malcolm']
 ```
 
 #### totalAge() - Skipped Test
 
+Calculates sum of all captain ages.
+
 ```javascript
-// Expected output
+// Expected output from totalAge()
+// 48 + 34 + 64 + 33 = 179
 179
 ```
 
 #### captainBio(captainId) - Skipped Test
 
+Merges captain data with corresponding ship data for a given captain ID. Transforms field names and requires fetching ship details.
+
 ```javascript
-// captainBio('R6TZN') expected output
+// Expected output from captainBio('R6TZN')
 {
   id: 'R6TZN',
   firstName: 'Malcolm',
@@ -271,70 +287,56 @@ The test suite defines six functions to be implemented. The first test is active
 
 #### captainsWithShipNamesBySize() - Skipped Test
 
+Returns all captains with ship names substituted for ship IDs, sorted by ship crew count in ascending order.
+
 ```javascript
-// Expected output (sorted by crew count ascending)
+// Expected output from captainsWithShipNamesBySize()
+// Sorted by crewCount: 2, 5, 44, 1012
 [
   {
     id: 'KZUC8',
     first: 'Han',
     last: 'Solo',
     age: 33,
-    ship: 'Millenium Falcon'
+    ship: 'Millenium Falcon'  // crewCount: 2
   },
   {
     id: 'R6TZN',
     first: 'Malcolm',
     last: 'Reynolds',
     age: 34,
-    ship: 'Serenity'
+    ship: 'Serenity'  // crewCount: 5
   },
   {
     id: 'SQ2WI',
     first: 'Jack',
     last: 'Sparrow',
     age: 48,
-    ship: 'Black Pearl'
+    ship: 'Black Pearl'  // crewCount: 44
   },
   {
     id: 'UXWPK',
     first: 'Jean Luc',
     last: 'Picard',
     age: 64,
-    ship: 'USS Enterprise NCC-1701-D'
+    ship: 'USS Enterprise NCC-1701-D'  // crewCount: 1012
   }
 ]
 ```
 
-## Development Workflow
+## NPM Scripts & Commands
 
-The project uses npm scripts to manage the development lifecycle. Two processes must run simultaneously: the mock API server and the Jest test runner. Each provides real-time feedback for test-driven development.
-
-### NPM Scripts
-
-| Script | Command | Purpose |
+| Command | Script | Description |
 | --- | --- | --- |
-| test | jest --watch --verbose | Start Jest in watch mode with verbose output; auto-reruns on file changes |
-| api | json-server --port 4000 ./api/db.json | Start JSON server on port 4000 serving mock captain and ship data |
-| api:stop | pkill -f 'json-server' || true | Stop running JSON server process (safe on systems without process) |
+| npm test | jest --watch --verbose | Runs Jest test suite in watch mode with verbose output; automatically reruns on file changes |
+| npm run api | json-server --port 4000 ./api/db.json | Starts JSON server on port 4000 serving data from api/db.json |
+| npm run api:stop | pkill -f 'json-server' || true | Stops all running json-server processes |
 
-### Getting Started Steps
-
-1. Install dependencies: npm install
-2. Start the mock API in one terminal: npm run api
-3. Start the tests in another terminal: npm test
-4. Jest runs in watch mode and will rerun tests automatically when project files are saved
-5. Complete captains-service.js implementations to get tests passing
-6. Remove the 'x' from xtest declarations to enable previously skipped tests progressively
-
-### Progressive Test Activation
-
-To reduce alarming red logging on first run, all but the first test in captains-service.test.js are skipped using the xtest() function. As you implement each service function, remove the 'x' from xtest to change it to test() and enable that test for validation.
-
-## Code Quality and Configuration
+## Development Configuration
 
 ### ESLint Configuration
 
-The project uses ESLint with the Airbnb style guide and Prettier integration for consistent code formatting and quality enforcement.
+Project uses Airbnb ESLint preset with Prettier formatting, Jest plugin support, and custom rule overrides to allow disabled tests and console statements.
 
 ```json
 {
@@ -357,9 +359,13 @@ The project uses ESLint with the Airbnb style guide and Prettier integration for
 }
 ```
 
-Notable rule customizations: console logging is enabled for debugging, unused variables are allowed during exercise development, and disabled tests are permitted to support the progressive test activation pattern.
+### VSCode Debugging
+
+Pre-configured Jest launch configuration for VSCode enables debugging with breakpoints. Runs Jest in band with watch mode enabled.
 
 ### VSCode Settings
+
+Auto-formatting on save with ESLint auto-fix enabled. Code actions on save run ESLint fixes explicitly.
 
 ```json
 {
@@ -371,58 +377,50 @@ Notable rule customizations: console logging is enabled for debugging, unused va
 }
 ```
 
-VSCode automatically fixes ESLint violations and formats code on save using Prettier, providing immediate feedback and maintaining code quality without manual intervention.
-
-### Jest Debugging Configuration
-
-A launch configuration enables debugging Jest tests directly from VSCode with breakpoint support and integrated terminal output.
-
-```json
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Jest All",
-      "program": "${workspaceFolder}/node_modules/.bin/jest",
-      "args": [
-        "--runInBand",
-        "--watchAll=true"
-      ],
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "disableOptimisticBPs": true,
-      "windows": {
-        "program": "${workspaceFolder}/node_modules/jest/bin/jest"
-      }
-    }
-  ]
-}
-```
-
-## Dependencies and Tooling
+## Dependencies & Versions
 
 ### Production Dependencies
 
 | Package | Version | Purpose |
 | --- | --- | --- |
-| axios | ^1.9.0 | Promise-based HTTP client for API requests |
-| json-server | ^1.0.0-beta.15 | RESTful mock API server using JSON file as data source |
+| axios | ^1.9.0 | HTTP client for making API requests |
+| json-server | ^1.0.0-beta.15 | Mock REST API server for development |
 
 ### Development Dependencies
 
 | Package | Version | Purpose |
 | --- | --- | --- |
-| @babel/preset-env | ^7.29.5 | Babel preset for transpiling modern JavaScript to compatible syntax |
-| eslint | ^8.57.1 | JavaScript code quality and style linter |
-| eslint-config-airbnb | ^19.0.4 | Airbnb's ESLint configuration preset |
-| eslint-config-prettier | ^9.1.2 | ESLint configuration disabling rules conflicting with Prettier |
-| eslint-plugin-import | ^2.32.0 | ESLint plugin validating import/export syntax |
-| eslint-plugin-jest | ^29.15.2 | ESLint plugin for Jest-specific linting rules |
-| jest | ^30.4.2 | Test framework and runner with assertion library |
-| jest-watch-typeahead | ^3.0.1 | Jest watch mode plugin enabling typeahead filtering |
-| prettier | ^3.8.3 | Code formatter ensuring consistent style across files |
+| @babel/preset-env | ^7.29.5 | Babel preset for ES6+ transpilation |
+| eslint | ^8.57.1 | JavaScript linting and code quality |
+| eslint-config-airbnb | ^19.0.4 | Airbnb ESLint configuration preset |
+| eslint-config-prettier | ^9.1.2 | Prettier ESLint configuration for code formatting |
+| jest | ^30.4.2 | Test framework and test runner |
+| jest-watch-typeahead | ^3.0.1 | Watch mode plugin for Jest with typeahead search |
+| prettier | ^3.8.3 | Code formatter |
+
+## Exercise Workflow
+
+The exercise follows a test-driven development approach with progressive complexity. Tests are initially skipped to reduce noise, then enabled one at a time as implementations are completed.
+
+### Step-by-Step Workflow
+
+1. Start mock API server: npm run api (runs on localhost:4000)
+2. Start Jest test runner: npm test (runs in watch mode)
+3. Verify API connectivity: All tests in apiClient.test.js should pass
+4. Implement getCaptains(): First test in captains-service.test.js should pass immediately
+5. Enable and implement firstNames(): Remove 'x' from xtest, implement function to extract first names
+6. Enable and implement firstNamesSorted(): Implement sorting logic on extracted names
+7. Enable and implement totalAge(): Implement aggregation logic to sum all ages
+8. Enable and implement captainBio(id): Implement data merge logic to combine captain and ship data
+9. Enable and implement captainsWithShipNamesBySize(): Implement sorting by ship crew count and name substitution
+
+### Key Implementation Patterns
+
+- All service functions are async and return Promises
+- apiClient.get() is used to fetch data from /captains and /ships endpoints
+- Data transformations require mapping, filtering, reducing, and sorting array operations
+- Ship data requires joining with captain data using ship ID as foreign key
+- Field names are transformed in output objects (e.g., first -> firstName)
 
 ---
 *Generated by Forge Wiki · 2026-06-18*
